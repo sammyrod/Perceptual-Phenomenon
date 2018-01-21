@@ -1,0 +1,3 @@
+https://stat.ethz.ch/R-manual/R-devel/library/base/html/options.html
+http://statistics.berkeley.edu/computing/r-t-tests
+https://www.r-bloggers.com/paired-students-t-test/

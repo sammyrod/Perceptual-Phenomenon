@@ -1,0 +1,196 @@
+---
+title: "Perceptual Phenomenon"
+author: "Samuel Rodriguez"
+date: "January 12, 2018"
+output: pdf_document
+---
+
+```{r data_set, include=FALSE}
+list.files()
+
+stroop <- read.csv("stroopdata.csv")
+```
+
+```{r packages, include=FALSE}
+if(!require(psych)){install.packages("psych")}
+if(!require(DescTools)){install.packages("DescTools")}
+library(ggplot2)
+```
+
+# Background Information
+
+> In a Stroop task, participants are presented with a list of words, with each word displayed in a color of ink. The participants task is to say out loud the color of the ink in which the word is printed. The task has two conditions: a congruent words condition, and an incongruent words condition. In the congruent words condition, the words being displayed are color words whose names match the colors in which they are printed: for example RED in red, BLUE in blue. In the incongruent words condition, the words displayed are color words whose names do not match the colors in which they are printed: for example PURPLE in blue, ORANGE in yellow. In each case, we measure the time it takes to name the ink colors in equally-sized lists. Each participant will go through and record a time from each condition.
+
+# Questions
+
+## 1. What is our independent variable? What is our dependent variable?
+
+> The independent variable is whether the font name and color were congruent or incongruent.
+
+>> Treatments: printed colors with congruent colors and printed colors with incongruent colors
+
+> The dependent variable is the time in seconds it takes to say out loud the ink colors.
+
+## 2. What is an appropriate set of hypotheses for this task? What kind of statistical test do you expect to perform? Justify your choices.
+
+
+> The Null Hypothesis ($H_o$): The time (seconds) it takes to say out loud the ink colors does not change between congruent and incongruent names and colors.
+  
+$$H_o:\mu_i - \mu_c = 0$$
+
+> The Alternative Hypothesis ($H_a$): It takes more time (seconds) to say out loud the ink colors when names and colors are incongruent.
+
+$$H_a:\mu_i - \mu_c > 0$$
+
+> The $\mu_i$ represents the population average time it takes to say out loud the ink colors when name and colors are incongruent.
+> The $\mu_c$ represents the population average time it takes to say outloud the ink colors when name and colors are congruent. And $\mu_i-\mu_c$ represents the difference between the two populations.
+
+
+> This is a within-subject design because all participants are exposed to the two treatments, and it is a dependent-samples t-test because it will compare the means of two related groups, congruent and incongruent, and the same participants are tested more than once. 
+> For this test, we chose a t-test instead of a z-test because the population parameters are unknown; we do not know the variance or the distribution of the population.
+> Moreover, this is not a longitudinal study since it does not extend over a period of time, say years or decades.
+> And it is not a pre-, post-test because we are not measuring change results resulting from an intervention.
+
+> The dependent variable is on a ratio level of measurement since it has an absolute zero even though it is practically not attainable. There is no mention of the sampling method utilized in this study, but it should be a random sampling from the defined population because each person in the population would have an equal chance of being selected.
+
+> There are two main assumptions for the dependent t-test:
+
+>- The population distribution of the two treatments is normal, including the difference.
+
+>> or
+
+>- The sample size is significantly large (e.g. greater or equal to 30).
+
+> Here, we are assuming that the population distribution is normal for both treatments. As described below with the descriptive statistics, the sample size is 24. Therefore, if the population distribution is not normal, the results of this test will have more errors because the results are based on a normal distribution.  
+
+> Based on the central limit theorem (CLT), violation of the first assumption listed above will not affect greatly the results of the test since the latter assumption will apply. The CLT states that the distribution of all sample means (the sampling distribution) is approximately normally distributed, where the sampling mean $\mu_{\bar{x}}$ equals the population mean $\mu$ and the sampling standard deviation $\sigma_{\bar{x}}$ equals the population standard deviation divided by the square root of the sample size $\sigma/\sqrt{n}$. Thus, if we assume the population distribution not to be normal, a nonparametric statistical test would be recommended.
+
+
+## 3. Report some descriptive statistics regarding this dataset. Include at least one measure of central tendency and at least one measure of variability.
+```{r custom_stat, include=FALSE}
+#use the format data_set$data_var
+#use central or variance for measure
+cen_var_stats <- function(data_var, var_name, measure){
+  if (tolower(measure) == "central"){
+    writeLines(c(paste(var_name, ":", sep = ""),
+                 paste("Sample Size:", length(data_var)),
+                 paste("Mean:", round(mean(data_var), 3)),
+                 paste("Median:", round(median(data_var), 3)),
+                 paste("Max:", max(data_var)),
+                 paste("Min", min(data_var))))
+  } else if (tolower(measure) == "variance") {
+    sd <- sd(data_var)
+    writeLines(c(paste(var_name, ":", sep = ""), paste("Variance:", round(var(data_var), 3)),
+                 paste("Variance:", round(var(data_var), 3)),
+                 paste("Standard Deviation:", round(sd, 3)),
+                 paste("Range:", range(data_var)[1], 
+                  "-", range(data_var)[2]),
+                 paste("Standard Error:",  
+                  round(sd/sqrt(length(data_var)), 3))))
+  } else {
+    message("Use central or variance for measure!")
+  }
+}
+```
+
+### Central Tendency Masures
+```{r central, echo=FALSE, comment="    "}
+cen_var_stats(stroop$Congruent, "Congruent", "central")
+cen_var_stats(stroop$Incongruent, "Incongruent", "central")
+```
+
+### Variability Measures
+```{r variability, echo=FALSE, comment="    "}
+cen_var_stats(stroop$Congruent, "Congruent", "variance")
+cen_var_stats(stroop$Incongruent, "Incongruent", "variance")
+```
+
+## 4. Provide one or two visualizations that show the distribution of the sample data. Write one or two sentences noting what you observe about the plot or plots.
+
+```{r reshape_data, include=FALSE}
+library(tidyr)
+stroop.resh <- gather(stroop, "treatment", "seconds", 1:2)
+```
+
+
+### Histogram
+```{r histograms, echo=FALSE}
+ggplot(aes(x = seconds), data = stroop.resh) + 
+  geom_histogram(aes(fill = treatment), binwidth = 2, 
+                 alpha = .4, color = "black", position = "identity") + 
+  scale_x_continuous(breaks = seq(1, 40, 2)) +
+  ggtitle("Congruent and Incongruent Read Times (seconds) Histogram") + 
+  xlab("Time in Seconds") +
+  ylab("Count (Frequency)")
+```
+
+**Observation**
+
+> We can see that there is an apparent overlap between the two distributions, which give us the assumption that there is not going to be enough evidence to support our alternative hypothesis.
+> We can also observe the two separated bins to the right of the Incongruent distribution. The values under these two bins are outliers.
+
+### Box Plot
+```{r box_plot, echo=FALSE}
+ggplot(aes(x = treatment , y = seconds), data = stroop.resh) +
+  geom_point(position = position_jitter()) +
+  geom_boxplot(aes(color = treatment), alpha = .2) +
+  theme(legend.position = "none") + 
+  ylab("Time in Seconds") + 
+  xlab("Word Displayed Treatments") + 
+  ggtitle("Congruent and Incongruent Read Times (seconds) Box Plot")
+```
+
+**Observation**
+
+> We can see that the time in seconds it takes to say out loud a printed color that is incongruent with the color displayed is higher than that of the congruent color, on a median basis.
+> However, we can see that the two distributions slightly meet in around 20 seconds.
+> Therefore, the difference might not be significant. 
+> Also, we can corroborate that there are two outliers in the Incongruent distribution. We should investigate why these two participants took about one and a half of the average seconds to determine the printed color and say it out loud.
+
+## 5. Now, perform the statistical test and report your results. What is your confidence level and your critical statistic value? Do you reject the null hypothesis or fail to reject it? Come to a conclusion in terms of the experiment task. Did the results match up with your expectations?
+
+```{r t_test, echo=FALSE, comment="    "}
+stroop$diff <- stroop$Incongruent - stroop$Congruent
+
+diff.mean <- mean(stroop$diff)
+diff.stdev <- sd(stroop$diff)
+diff.count <- length(stroop$diff)
+diff.serr <- diff.stdev/sqrt(diff.count)
+diff.t <- diff.mean/(diff.stdev/sqrt(diff.count))
+diff.marger <- qt(c(.025, .975), diff.count-1)*diff.serr
+cohen.d <- diff.mean/diff.stdev
+
+
+writeLines(c(paste("Mean:", round(diff.mean, 3)),
+             paste("Stdev:", round(diff.stdev, 3)),
+             paste("Sample Size:", diff.count),
+             paste("Standard Error:", round(diff.serr, 3)),
+             paste("t-value:", round(diff.t, 3)),
+             paste("t-critical:", round(qt(.95, diff.count-1), 3)),
+             paste("Cohens'd:", round(cohen.d, 3)),
+             paste("Confidence_t-values", round(qt(c(.025, .975), diff.count-1), 3)),
+             paste("Margin of Error:", paste(round(diff.marger, 3), sep = "-")),
+             paste("Confidence-int:", paste(round(diff.mean + diff.marger, 3), sep = "-"))))
+options(scipen = 10)
+with(stroop, t.test(Incongruent, Congruent, paired = TRUE, alternative = "greater"))
+```
+**Conclusion**
+
+> We can reject the null hypothesis in favor of the alternative hypothesis because the p-value is less than the alpha value at a significance level of .05.
+> Therefore, there is enough evidence to say that it takes more time in seconds to say out loud the ink colors when the printed color is incongruent with the color.
+
+> From the perspective of the graphs, there was a presumption that the difference was not going to be significant due to the interlinked distributions. However, that was not the case; indeed, statistically speaking incongruency makes it more difficult to say the ink colors out loud.
+
+> There is one more thing to keep in mind with this experiment. That is the sample size. We are assuming that the population proportion is also normal because if not, the validity of this experiment could be in question as the central limit theorem applies better to bigger sample sizes (e.g. greater or equal to 30). 
+
+## 6. Optional: What do you think is responsible for the effects observed? Can you think of an alternative or similar task that would result in a similar effect? Some research about the problem will be helpful for thinking about these two questions!
+
+> Adding another stimulus to the task of naming, or saying out loud, printed colors could be the reasons for the effects observed. In an article by Frederick N. Dyer, he mentioned that the time for reading the color is faster than naming the color because of interference between the cerebral hemispheres, the right and left one (1972). In his paper, he mentioned that Brenda Milner, the author of Interhemispheric differences in the localization of psychological processes in man, stated that the dominant hemisphere process verbal cues better than the nondominant hemisphere, which process certain nonverbal cues better. 
+
+> The most interest argument by Milner as he mentioned is that "if color were one such dimension that was better handled by the nondominant hemisphere, one would predict that stimulating this hemisphere alone with a Stroop stimulus would reduce the interference" (1972, p. 114). The corpus callosum, the organism in the brain that joins the two hemispheres is required to transmit information back and forward when the nondominant hemisphere is stimulated by nonverbal cues (Dyer, 1972). 
+
+> Perhaps other tasks such as naming the shape of a rectangle inside a triangle would result is similar a similar conclusion as in the Stroop effect demonstration. As long as the two hemispheres of the brain are being challenged at the same time, we can presume that it will take more time when there is another stimulus included in the task.
+
+# References
+
+Dyer, F.N. (1972). The Stroop phenomenon and its use in the study of perceptual, cognitive, and response processes. *Memory & Cognition, 1(2)*, 106-120.
